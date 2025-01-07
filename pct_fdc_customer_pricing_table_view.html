@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Pricing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        header {
+            background-color: #444;
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        main {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h2,
+        h3 {
+            color: #555;
+        }
+
+        form {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        select {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .actionBtn {
+            padding: 0.25rem 0.5rem;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .actionBtn:hover {
+            background-color: #218838;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .selected-info {
+            font-size: 0.9rem;
+            color: #777;
+        }
+
+        .selected-row {
+            background-color: #d9f7be;
+            /* Change this color to your desired selected row color */
+        }
+
+
+        .exportBtn {
+            padding: 0.5rem 1rem;
+            background-color: #6c757d;
+            /* Gray color */
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .exportBtn:hover {
+            background-color: #5a6268;
+            /* Darker gray for hover */
+        }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <header>
+        <h1>Customer Pricing</h1>
+    </header>
+
+    <main>
+        <h2>Customer Pricing Table</h2>
+
+        <form id="customerForm">
+            <label for="customerDropdown">Select Customer:</label>
+            <select id="customerDropdown" name="customerId">
+                <option value="">--Select Customer--</option>
+                {{customerOptions}}
+            </select>
+            <button type="submit">Submit</button>
+        </form>
+
+        <div class="table-container" id="pricingTableContainer">
+            <h3>Pricing Table</h3>
+            <table id="pricingTable">
+                <thead>
+                    <tr>
+                        <th>Product Class</th>
+                        <th>Price Group</th>
+                        <th>Price Level</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Pricing table rows will be dynamically added here -->
+                </tbody>
+
+            </table>
+            <div id="pagination-container" class="d-flex flex-column justify-content-end align-items-end mt-3"></div>
+        </div>
+    </main>
+
+    <!-- Modal for assembly items -->
+    <div class="modal" id="assemblyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Assembly Items</h3>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <p class="selected-info" id="selectedRowInfo"></p>
+            <table id="assemblyItemTable">
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Product Class</th>
+                        <th>Pricing Group</th>
+                        <th>Unit Price</th>
+                        <th>Price Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Assembly items rows will be dynamically added here -->
+                </tbody>
+            </table>
+            <button class="exportBtn" id="exportCsvBtn">Export to CSV</button>
+        </div>
+    </div>
+
+    <script>
+        const noOfRowsInAPage = 100
+        let currentActivePage = 1;
+
+        const getPagedData = async (index) => {
+            document.getElementsByClassName('page-item')[currentActivePage - 1].classList.remove('active');
+            document.getElementsByClassName('page-item')[index - 1].classList.add('active');
+            currentActivePage = index;
+
+            const end = noOfRowsInAPage * index - 1,
+                start = (end - noOfRowsInAPage) + 1,
+                currentUrl = new URL(window.location.href),
+                customerId = document.getElementById('customerDropdown').value,
+                script = currentUrl.searchParams.get('script'),
+                deploy = currentUrl.searchParams.get('deploy');
+
+            const response = await fetch(`/app/site/hosting/scriptlet.nl?script=${script}&deploy=${deploy}&customerId=${customerId}&start=${start}&end=${end}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) return;
+
+            const result = await response.json();
+            if (!result) return;
+
+            const pricingTableData = generatePricingTable(result.pricingTableData);
+            if (!pricingTableData) return;
+
+            document.querySelector('#pricingTable tbody').innerHTML = '';
+            document.querySelector('#pricingTable tbody').innerHTML = pricingTableData;
+        };
+
+        const generatePricingTable = (dataArray) => {
+            const customerId = document.getElementById('customerDropdown').value;
+            let tbody = `<tbody>`;
+
+            for (const data of dataArray) {
+                tbody += `<tr>
+                    <td>${data.prodClass.text}</td>
+                    <td>${data.priceGroup.text}</td>
+                    <td>${data.priceLevel.text}</td>
+                    <td>
+                        <button class="actionBtn" 
+                            data-prodclass="${data.prodClass.value}" 
+                            data-pricegroup="${data.priceGroup.value}" 
+                            data-pricelevel="${data.priceLevel.value}" 
+                            data-customerid="${customerId}">
+                            Select
+                        </button>
+                    </td>
+                </tr>`;
+            }
+            tbody += `</tbody>`;
+
+            return tbody;
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var assemblyModal = document.getElementById('assemblyModal');
+            var closeModalBtn = document.getElementById('closeModal');
+            var selectedRowInfo = document.getElementById('selectedRowInfo');
+            var exportCsvBtn = document.getElementById('exportCsvBtn');
+
+            // Handle form submission for customer selection
+            document.getElementById('customerForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                var customerId = document.getElementById('customerDropdown').value;
+                if (customerId) {
+                    var formData = new FormData();
+                    formData.append('customerId', customerId);
+                    formData.append('page', 1);
+
+                    var request = new XMLHttpRequest();
+                    request.open('POST', window.location.href, true);
+                    request.onreadystatechange = function () {
+                        if (request.readyState === 4 && request.status === 200) {
+                            var data = JSON.parse(request.responseText);
+                            var pricingTableData = data.pricingTableData;
+                            var searchResultCount = data.searchResultCount;
+                            console.log("searchResultCount=====", searchResultCount)
+                            var pageCount = Math.ceil(searchResultCount / 100)
+                            console.log("pageCounte=====", pageCount)
+
+                            if (pageCount > 0) {
+                                let pagination = `<nav aria-label="Page navigation example">
+                                    <ul class="pagination">`
+                                for (let index = 0; index < pageCount; index++) {
+                                    pagination += `<li class="page-item ${index === 0 ? 'active' : ''}"><a class="page-link" href='#' onclick=getPagedData(${index + 1})>${index + 1}</a></li>`
+                                }
+                                pagination += `</ul>
+                                </nav>`
+                                document.getElementById('pagination-container').innerHTML = pagination
+                            }
+
+                            var pricingTableRows = pricingTableData.map(function (row) {
+                                return '<tr>' +
+                                    '<td>' + row.prodClass.text + '</td>' +
+                                    '<td>' + row.priceGroup.text + '</td>' +
+                                    '<td>' + row.priceLevel.text + '</td>' +
+                                    '<td><button class="actionBtn" ' +
+                                    'data-prodclass="' + row.prodClass.value + '" ' +
+                                    'data-pricegroup="' + row.priceGroup.value + '" ' +
+                                    'data-pricelevel="' + row.priceLevel.value + '" ' +
+                                    'data-customerid="' + customerId + '">Select</button></td>' +
+                                    '</tr>';
+                            }).join('');
+
+
+                            document.querySelector('#pricingTable tbody').innerHTML = pricingTableRows;
+                        }
+                    };
+                    request.send(formData);
+                } else {
+                    alert('Please select a customer.');
+                }
+            });
+
+
+
+            // Handle row selection to fetch assembly items and display modal
+            // document.body.addEventListener('click', function (event) {
+            //     if (event.target && event.target.classList.contains('actionBtn')) {
+            //         var prodClass = event.target.getAttribute('data-prodclass');
+            //         var priceGroup = event.target.getAttribute('data-pricegroup');
+            //         var priceLevel = event.target.getAttribute('data-pricelevel');
+            //         var customerId = event.target.getAttribute('data-customerid');
+
+            //         //selectedRowInfo.innerText = `Selected Product Class: ${prodClass}, Price Group: ${priceGroup}, Price Level: ${priceLevel}`;
+
+            //         var formData = new FormData();
+            //         formData.append('customerId', customerId);
+            //         formData.append('prodClass', prodClass);
+            //         formData.append('priceLevel', priceLevel);
+
+            //         var request = new XMLHttpRequest();
+            //         request.open('POST', window.location.href, true);
+            //         request.onreadystatechange = function () {
+            //             if (request.readyState === 4 && request.status === 200) {
+            //                 var data = JSON.parse(request.responseText);
+            //                 var assemblyItemData = data.assemblyItemData;
+
+            //                 var assemblyItemRows = assemblyItemData.map(function (item) {
+            //                     return '<tr>' +
+            //                         '<td>' + item.itemName + '</td>' +
+            //                         '<td>' + item.productClass + '</td>' +
+            //                         '<td>' + item.pricingGroup + '</td>' +
+            //                         '<td>' + item.unitPrice + '</td>' +
+            //                         '<td>' + item.priceLevel + '</td>' +
+            //                         '</tr>';
+            //                 }).join('');
+
+            //                 document.querySelector('#assemblyItemTable tbody').innerHTML = assemblyItemRows;
+
+            //                 // Show the modal
+            //                 assemblyModal.style.display = 'flex';
+            //             }
+            //         };
+            //         request.send(formData);
+            //     }
+            // });
+
+
+            document.body.addEventListener('click', function (event) {
+                if (event.target && event.target.classList.contains('actionBtn')) {
+                    // Remove the background color from any previously selected row
+                    const previousSelectedRow = document.querySelector('.selected-row');
+                    if (previousSelectedRow) {
+                        previousSelectedRow.classList.remove('selected-row');
+                    }
+
+                    // Add the 'selected-row' class to the clicked row
+                    const selectedRow = event.target.closest('tr');
+                    selectedRow.classList.add('selected-row');
+
+                    var prodClass = event.target.getAttribute('data-prodclass');
+                    var priceGroup = event.target.getAttribute('data-pricegroup');
+                    var priceLevel = event.target.getAttribute('data-pricelevel');
+                    var customerId = event.target.getAttribute('data-customerid');
+
+                    // Process the selected row data (similar to your existing logic for fetching assembly items)
+                    var formData = new FormData();
+                    formData.append('customerId', customerId);
+                    formData.append('prodClass', prodClass);
+                    formData.append('priceLevel', priceLevel);
+
+                    var request = new XMLHttpRequest();
+                    request.open('POST', window.location.href, true);
+                    request.onreadystatechange = function () {
+                        if (request.readyState === 4 && request.status === 200) {
+                            var data = JSON.parse(request.responseText);
+                            var assemblyItemData = data.assemblyItemData;
+
+                            var assemblyItemRows = assemblyItemData.map(function (item) {
+                                return '<tr>' +
+                                    '<td>' + item.itemName + '</td>' +
+                                    '<td>' + item.productClass + '</td>' +
+                                    '<td>' + item.pricingGroup + '</td>' +
+                                    '<td>' + item.unitPrice + '</td>' +
+                                    '<td>' + item.priceLevel + '</td>' +
+                                    '</tr>';
+                            }).join('');
+
+                            document.querySelector('#assemblyItemTable tbody').innerHTML = assemblyItemRows;
+                            //document.getElementById('selectedRowInfo').innerText = `Selected Product Class: ${prodClass}, Price Group: ${priceGroup}, Price Level: ${priceLevel}`;
+                            assemblyModal.style.display = 'flex';
+                        }
+                    };
+                    request.send(formData);
+                }
+            });
+
+
+
+            // Close modal
+            closeModalBtn.addEventListener('click', function () {
+                assemblyModal.style.display = 'none';
+            });
+
+            // Close modal when clicking outside modal content
+            window.addEventListener('click', function (event) {
+                if (event.target === assemblyModal) {
+                    assemblyModal.style.display = 'none';
+                }
+            });
+
+            // Export assembly items to CSV
+            exportCsvBtn.addEventListener('click', function () {
+                var table = document.getElementById('assemblyItemTable');
+                var rows = table.querySelectorAll('tbody tr');
+                var csvContent = 'Item Name,Product Class,Pricing Group,Unit Price,Price Level\n';
+
+                rows.forEach(function (row) {
+                    var cells = row.querySelectorAll('td');
+                    var rowData = Array.from(cells).map(function (cell) {
+                        return '"' + cell.innerText.replace(/"/g, '""') + '"';
+                    }).join(',');
+                    csvContent += rowData + '\n';
+                });
+
+                var csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                var downloadLink = document.createElement('a');
+                var url = URL.createObjectURL(csvBlob);
+                downloadLink.setAttribute('href', url);
+                downloadLink.setAttribute('download', 'assembly_items.csv');
+                downloadLink.click();
+            });
+        });
+    </script>
+
+</body>
+
+</html>
